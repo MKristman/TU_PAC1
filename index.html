@@ -42,18 +42,18 @@
         }
 
         #dpad {
-            margin-top: 20px;
+            margin-top: 15px;
             display: grid;
             grid-template-areas: 
                 ". up ."
                 "left . right"
                 ". down .";
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn {
-            width: 65px;
-            height: 65px;
+            width: 60px;
+            height: 60px;
             background: #222;
             border: 2px solid #555;
             color: white;
@@ -86,46 +86,51 @@
         </div>
     </div>
 
-    <audio id="bgMusic" src="assets/cali8 Bit.mp3" loop preload="auto"></audio>
+    <audio id="bgMusic" src="assets/cali8%20Bit.mp3" loop preload="auto"></audio>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 const TILE = 20; 
-canvas.width = 340;
-canvas.height = 380;
+canvas.width = 380; // 19 tiles wide
+canvas.height = 420; // 21 tiles high
 
 const sprite = new Image();
 sprite.src = 'assets/sprite.png'; 
 let spriteLoaded = false;
 sprite.onload = () => { spriteLoaded = true; };
 
-// Sprite is 3/4 the size of the 20px opening (15px)
-const SPRITE_SIZE = TILE * 0.75;
+// Square sprite: 15x15 (3/4 of the 20px tile)
+const SPRITE_SIZE = 15;
 const SPRITE_OFFSET = (TILE - SPRITE_SIZE) / 2;
 
+// Complicated Layout (19x21)
 const maze = [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,1,0,1,0,1,1,0,1,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,0,1,1,1,0,1,0,1,1,0,1],
-    [1,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,1],
-    [1,1,1,1,0,1,1,0,1,0,1,1,0,1,1,1,1],
-    [2,2,2,1,0,1,0,0,0,0,0,1,0,1,2,2,2],
-    [1,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1],
-    [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
-    [1,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1],
-    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,1,0,1,0,1,1,0,1,1,0,1],
-    [1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1],
-    [1,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+    [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+    [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+    [1,1,1,1,0,1,1,1,2,1,2,1,1,1,0,1,1,1,1],
+    [2,2,2,1,0,1,2,2,2,2,2,2,2,1,0,1,2,2,2],
+    [1,1,1,1,0,1,2,1,1,2,1,1,2,1,0,1,1,1,1],
+    [2,0,0,0,0,2,2,1,2,2,2,1,2,2,0,0,0,0,2],
+    [1,1,1,1,0,1,2,1,1,1,1,1,2,1,0,1,1,1,1],
+    [2,2,2,1,0,1,2,2,2,2,2,2,2,1,0,1,2,2,2],
+    [1,1,1,1,0,1,2,1,1,1,1,1,2,1,0,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+    [1,0,0,1,0,0,0,0,0,2,0,0,0,0,0,1,0,0,1],
+    [1,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1],
+    [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+    [1,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
-let player = { x: 8 * TILE, y: 13 * TILE, dx: 0, dy: 0, score: 0 };
+let player = { x: 9 * TILE, y: 14 * TILE, dx: 0, dy: 0, score: 0 };
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -160,10 +165,10 @@ function draw() {
 }
 
 function canMove(nx, ny) {
-    let col = Math.floor((nx + 2) / TILE);
-    let row = Math.floor((ny + 2) / TILE);
-    let col2 = Math.floor((nx + TILE - 2) / TILE);
-    let row2 = Math.floor((ny + TILE - 2) / TILE);
+    let col = Math.floor((nx + 3) / TILE);
+    let row = Math.floor((ny + 3) / TILE);
+    let col2 = Math.floor((nx + TILE - 3) / TILE);
+    let row2 = Math.floor((ny + TILE - 3) / TILE);
     
     if (row < 0 || row >= maze.length) return true;
     if (col < 0 || col >= maze[0].length) return true;
@@ -189,25 +194,37 @@ function update() {
     }
 }
 
+const startMusic = () => {
+    const music = document.getElementById('bgMusic');
+    if (music.paused) {
+        music.play().catch(e => console.error("Audio block:", e));
+    }
+};
+
 const move = (x, y) => { 
     player.dx = x * 2; 
     player.dy = y * 2; 
-    const music = document.getElementById('bgMusic');
-    // Force play on every interaction to bypass mobile blocks
-    music.play().catch(e => console.log("Audio trigger failed"));
+    startMusic();
 };
 
-document.getElementById('up').onpointerdown = (e) => { e.preventDefault(); move(0, -1); };
-document.getElementById('down').onpointerdown = (e) => { e.preventDefault(); move(0, 1); };
-document.getElementById('left').onpointerdown = (e) => { e.preventDefault(); move(-1, 0); };
-document.getElementById('right').onpointerdown = (e) => { e.preventDefault(); move(1, 0); };
+// Use explicit event listeners for D-pad
+const btns = ['up', 'down', 'left', 'right'];
+const dirs = [[0,-1], [0,1], [-1,0], [1,0]];
 
-window.onkeydown = (e) => {
+btns.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        move(dirs[i][0], dirs[i][1]);
+    });
+});
+
+window.addEventListener('keydown', (e) => {
     if(e.key === "ArrowUp") move(0, -1);
     if(e.key === "ArrowDown") move(0, 1);
     if(e.key === "ArrowLeft") move(-1, 0);
     if(e.key === "ArrowRight") move(1, 0);
-};
+});
 
 draw();
 </script>
