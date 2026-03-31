@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <audio id="bgMusic" src="assets/cali8 Bit.mp3" loop preload="auto"></audio>
+    <audio id="bgMusic" src="assets/cali8bit.mp3" loop preload="auto"></audio>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
@@ -121,26 +121,27 @@ sprite.onload = () => { spriteLoaded = true; };
 const SPRITE_SIZE = 15;
 const SPRITE_OFFSET = (TILE - SPRITE_SIZE) / 2;
 
-// Maze with more intersections/paths
+// Challenging Maze with more pathways and intersections
 const maze = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,0,1,0,0,1,0,1,1,1,0,1,1,0,1],
+    [1,0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,1,0,1],
     [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
     [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
-    [1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1],
-    [1,0,0,0,0,1,1,1,0,1,0,1,1,1,0,0,0,0,1],
-    [1,0,1,1,0,1,0,0,0,1,0,0,0,1,0,1,1,0,1],
-    [1,0,0,0,0,1,0,1,1,1,1,1,0,1,0,0,0,0,1],
-    [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [1,0,0,0,0,1,0,1,1,2,1,1,0,1,0,0,0,0,1],
-    [0,0,1,1,0,1,0,1,2,2,2,1,0,1,0,1,1,0,0],
-    [1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,0,0,0,0,0,0,0,1,0,1,1,0,1],
-    [1,0,0,0,0,1,1,1,0,1,0,1,1,1,0,0,0,0,1],
-    [1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,1,1,1],
-    [1,0,0,0,0,1,1,1,0,1,0,1,1,1,0,0,0,0,1],
-    [1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1],
-    [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+    [1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1],
+    [1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1],
+    [1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+    [1,0,1,1,0,1,0,1,1,2,1,1,0,1,0,1,1,0,1],
+    [0,0,0,0,0,0,0,1,2,2,2,1,0,0,0,0,0,0,0],
+    [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+    [1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+    [1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1],
     [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+    [1,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+    [1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
@@ -214,10 +215,11 @@ const move = (x, y) => {
     player.dy = y * 2; 
 };
 
-// MULTI-TRIGGER START (Click and Touch)
 function handleStart() {
     const music = document.getElementById('bgMusic');
-    music.play().catch(e => alert("Audio file not found. Check GitHub for: assets/cali8 Bit.mp3"));
+    music.play().catch(e => {
+        console.error("Audio failed:", e);
+    });
     document.getElementById('start-screen').style.display = 'none';
     gameRunning = true;
     draw();
@@ -246,7 +248,6 @@ window.addEventListener('keydown', (e) => {
     if(e.key === "ArrowRight") move(1, 0);
 });
 
-// Pre-render maze
 ctx.fillStyle = '#000';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 for(let r=0; r<maze.length; r++) {
@@ -260,3 +261,4 @@ for(let r=0; r<maze.length; r++) {
 </script>
 </body>
 </html>
+
