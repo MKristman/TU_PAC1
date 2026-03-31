@@ -1,208 +1,279 @@
-
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>TU-PAC</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TU-PAC</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #ffff00;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Courier New', Courier, monospace;
+            flex-direction: column;
+        }
 
-<style>
-body {
-    background-color: #000;
-    color: #ffff00;
-    margin: 0;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    font-family: Courier New, monospace;
-    flex-direction: column;
-}
+        h1 {
+            font-size: 36px;
+            margin: 10px 0;
+            font-weight: bold;
+            color: #0000ff; 
+            -webkit-text-stroke: 2px #ffa500; 
+            paint-order: stroke fill;
+            text-shadow: 2px 2px 0px #000;
+        }
 
-h1 {
-    font-size: 36px;
-    margin: 5px 0;
-    color: #0000ff;
-    -webkit-text-stroke: 2px #ffa500;
-    text-shadow: 2px 2px 0px #000;
-}
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
 
-#game-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
+        canvas {
+            border: 4px solid #2222ff;
+            background-color: #000;
+            display: block;
+        }
 
-canvas {
-    border: 4px solid #2222ff;
-    background-color: #000;
-}
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            color: #ffa500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            font-weight: bold;
+            z-index: 10;
+            cursor: pointer;
+        }
 
-#start-screen {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
-    color: #ffa500;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 28px;
-    z-index: 10;
-    cursor: pointer;
-}
+        #dpad {
+            margin-top: 15px;
+            display: grid;
+            grid-template-areas: 
+                ". up ."
+                "left . right"
+                ". down .";
+            gap: 8px;
+        }
 
-/* FIXED DPAD POSITION */
-#dpad {
-    margin-top: 5px;
-    display: grid;
-    grid-template-areas:
-        ". up ."
-        "left . right"
-        ". down .";
-    gap: 4px;
-}
+        .btn {
+            width: 60px;
+            height: 60px;
+            background: #222;
+            border: 2px solid #555;
+            color: white;
+            font-size: 24px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: manipulation;
+        }
 
-.btn {
-    width: 55px;
-    height: 55px;
-    background: #222;
-    border: 2px solid #555;
-    color: white;
-    font-size: 22px;
-    border-radius: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.up { grid-area: up; }
-.down { grid-area: down; }
-.left { grid-area: left; }
-.right { grid-area: right; }
-</style>
+        .btn:active { background: #444; }
+        .up { grid-area: up; }
+        .down { grid-area: down; }
+        .left { grid-area: left; }
+        .right { grid-area: right; }
+    </style>
 </head>
-
 <body>
 
-<h1>TU-PAC</h1>
-
-<div id="game-container">
-    <canvas id="gameCanvas"></canvas>
-    <div id="start-screen">TAP TO PLAY</div>
-
-    <div id="dpad">
-        <div class="btn up" id="up">▲</div>
-        <div class="btn left" id="left">◀</div>
-        <div class="btn right" id="right">▶</div>
-        <div class="btn down" id="down">▼</div>
+    <h1>TU-PAC</h1>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="start-screen">TAP TO PLAY</div>
+        <div id="dpad">
+            <div class="btn up" id="up">▲</div>
+            <div class="btn left" id="left">◀</div>
+            <div class="btn right" id="right">▶</div>
+            <div class="btn down" id="down">▼</div>
+        </div>
     </div>
-</div>
 
-<!-- FORCE AUTOPLAY WORKAROUND -->
-<audio id="bgMusic" src="assets/cali8bit.mp3" loop autoplay muted playsinline></audio>
+    <audio id="bgMusic" src="assets/cali8bit.mp3" loop preload="auto"></audio>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
-const TILE = 20;
-canvas.width = 380;
-canvas.height = 420;
+const TILE = 20; 
+canvas.width = 380; 
+canvas.height = 420; 
 
 const sprite = new Image();
-sprite.src = 'assets/sprite.png';
+sprite.src = 'assets/sprite.png'; 
+let spriteLoaded = false;
+sprite.onload = () => { spriteLoaded = true; };
 
+// 5/8 of 20px is 12.5px
 const SPRITE_SIZE = 12.5;
 const SPRITE_OFFSET = (TILE - SPRITE_SIZE) / 2;
 
 const maze = [
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-[1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1],
-[1,0,1,1,0,0,1,0,0,1,0,1,1,1,0,1,1,0,1],
-[1,0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,1,0,1],
-[1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-[1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
-[1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1],
-[1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1],
-[1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
-[1,0,1,1,0,1,0,1,1,2,1,1,0,1,0,1,1,0,1],
-[0,0,0,0,0,0,0,1,2,2,2,1,0,0,0,0,0,0,0],
-[1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
-[1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
-[1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1],
-[1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-[1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
-[1,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-[1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,1],
-[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,0,1,0,0,1,0,1,1,1,0,1,1,0,1],
+    [1,0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,1,0,1],
+    [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+    [1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1],
+    [1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1],
+    [1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+    [1,0,1,1,0,1,0,1,1,2,1,1,0,1,0,1,1,0,1],
+    [0,0,0,0,0,0,0,1,2,2,2,1,0,0,0,0,0,0,0],
+    [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+    [1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+    [1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+    [1,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+    [1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
-let player = { x: TILE, y: TILE, dx: 0, dy: 0, score: 0 };
+let player = { x: 1 * TILE, y: 1 * TILE, dx: 0, dy: 0, score: 0 };
 let gameRunning = false;
-
-function canMove(nx, ny) {
-    if (nx < 0 || nx + TILE > canvas.width) {
-        player.dx = -player.dx;
-        return false;
-    }
-
-    let col = Math.floor((nx + TILE/2) / TILE);
-    let row = Math.floor((ny + TILE/2) / TILE);
-
-    if (maze[row] && maze[row][col] === 1) return false;
-
-    return true;
-}
-
-function update() {
-    if (canMove(player.x + player.dx, player.y + player.dy)) {
-        player.x += player.dx;
-        player.y += player.dy;
-    } else {
-        player.dy = 0;
-    }
-}
+let audioCtx;
 
 function draw() {
     if (!gameRunning) return;
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    for (let r=0;r<maze.length;r++) {
-        for (let c=0;c<maze[r].length;c++) {
-            if (maze[r][c] === 1) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    for(let r=0; r<maze.length; r++) {
+        for(let c=0; c<maze[r].length; c++) {
+            if(maze[r][c] === 1) {
                 ctx.fillStyle = '#0000ff';
                 ctx.fillRect(c*TILE, r*TILE, TILE, TILE);
+            } else if(maze[r][c] === 0) {
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(c*TILE + TILE/2, r*TILE + TILE/2, 2, 0, 6.28);
+                ctx.fill();
             }
         }
     }
 
-    ctx.drawImage(sprite, player.x + SPRITE_OFFSET, player.y + SPRITE_OFFSET, SPRITE_SIZE, SPRITE_SIZE);
+    if(spriteLoaded) {
+        ctx.drawImage(sprite, player.x + SPRITE_OFFSET, player.y + SPRITE_OFFSET, SPRITE_SIZE, SPRITE_SIZE);
+    } else {
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(player.x + SPRITE_OFFSET, player.y + SPRITE_OFFSET, SPRITE_SIZE, SPRITE_SIZE);
+    }
 
+    ctx.fillStyle = "white";
+    ctx.font = "14px Arial";
+    ctx.fillText("SCORE: " + player.score, 10, canvas.height - 10);
+
+    update();
     requestAnimationFrame(draw);
 }
 
+function canMove(nx, ny) {
+    let buffer = 3;
+    let points = [
+        {x: nx + buffer, y: ny + buffer},
+        {x: nx + TILE - buffer, y: ny + buffer},
+        {x: nx + buffer, y: ny + TILE - buffer},
+        {x: nx + TILE - buffer, y: ny + TILE - buffer}
+    ];
+
+    for(let p of points) {
+        let col = Math.floor(p.x / TILE);
+        let row = Math.floor(p.y / TILE);
+        
+        // Bounce Logic for terminal side walls
+        if (col < 0 || col >= maze[0].length) {
+            player.dx = -player.dx; 
+            return false;
+        }
+
+        if(maze[row] && maze[row][col] === 1) return false;
+    }
+    return true;
+}
+
+function update() {
+    if(canMove(player.x + player.dx, player.y + player.dy)) {
+        player.x += player.dx;
+        player.y += player.dy;
+    } else {
+        // If vertical collision, stop y. If horizontal (handled in canMove), it bounces.
+        if (player.dy !== 0) player.dy = 0;
+    }
+
+    let cx = Math.floor((player.x + TILE/2) / TILE);
+    let cy = Math.floor((player.y + TILE/2) / TILE);
+    if(maze[cy] && maze[cy][cx] === 0) {
+        maze[cy][cx] = 2;
+        player.score += 10;
+    }
+}
+
+const move = (x, y) => { 
+    player.dx = x * 2.5; 
+    player.dy = y * 2.5; 
+};
+
 function handleStart() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    audioCtx.resume();
+    
     const music = document.getElementById('bgMusic');
-
-    music.muted = false;
-    music.volume = 1;
-
-    music.play().catch(e => console.log("Audio error:", e));
-
+    music.play().catch(e => console.log("Audio file missing in assets/"));
+    
     document.getElementById('start-screen').style.display = 'none';
     gameRunning = true;
     draw();
 }
 
-document.getElementById('start-screen')
-    .addEventListener('pointerdown', handleStart);
+const startBtn = document.getElementById('start-screen');
+startBtn.addEventListener('click', handleStart);
+startBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handleStart();
+}, {passive: false});
 
+const btns = ['up', 'down', 'left', 'right'];
+const dirs = [[0,-1], [0,1], [-1,0], [1,0]];
+btns.forEach((id, i) => {
+    document.getElementById(id).addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        move(dirs[i][0], dirs[i][1]);
+    });
+});
+
+window.addEventListener('keydown', (e) => {
+    if(e.key === "ArrowUp") move(0, -1);
+    if(e.key === "ArrowDown") move(0, 1);
+    if(e.key === "ArrowLeft") move(-1, 0);
+    if(e.key === "ArrowRight") move(1, 0);
+});
+
+ctx.fillStyle = '#000';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+for(let r=0; r<maze.length; r++) {
+    for(let c=0; c<maze[r].length; c++) {
+        if(maze[r][c] === 1) {
+            ctx.fillStyle = '#0000ff';
+            ctx.fillRect(c*TILE, r*TILE, TILE, TILE);
+        }
+    }
+}
 </script>
-
 </body>
 </html>
