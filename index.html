@@ -6,88 +6,81 @@
 <title>TU-PAC</title>
 
 <style>
-    body {
-        background-color: #000;
-        color: #ffff00;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        font-family: 'Courier New', monospace;
-        flex-direction: column;
-        touch-action: manipulation;
-    }
+body {
+    background-color: #000;
+    color: #ffff00;
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Courier New, monospace;
+    flex-direction: column;
+}
 
-    h1 {
-        font-size: 36px;
-        margin: 10px 0 5px;
-        color: #0000ff;
-        -webkit-text-stroke: 2px #ffa500;
-        text-shadow: 2px 2px 0 #000;
-    }
+h1 {
+    font-size: 36px;
+    margin: 5px 0;
+    color: #0000ff;
+    -webkit-text-stroke: 2px #ffa500;
+    text-shadow: 2px 2px 0px #000;
+}
 
-    #game-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        margin-bottom: 15px; /* extra space for dpad */
-    }
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
 
-    canvas {
-        border: 4px solid #2222ff;
-        background-color: #000;
-        image-rendering: pixelated; /* nicer for retro look */
-    }
+canvas {
+    border: 4px solid #2222ff;
+    background-color: #000;
+}
 
-    #start-screen {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.95);
-        color: #ffa500;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 28px;
-        z-index: 10;
-        cursor: pointer;
-        user-select: none;
-    }
+#start-screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    color: #ffa500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    z-index: 10;
+    cursor: pointer;
+}
 
-    /* D-PAD */
-    #dpad {
-        margin-top: 12px;
-        display: grid;
-        grid-template-areas:
-            ". up ."
-            "left . right"
-            ". down .";
-        gap: 8px;
-    }
+/* D-PAD - up and down brought closer */
+#dpad {
+    margin-top: 8px;
+    display: grid;
+    grid-template-areas:
+        ". up ."
+        "left . right"
+        ". down .";
+    gap: 3px; /* smaller vertical gap between up and down */
+}
 
-    .btn {
-        width: 60px;
-        height: 60px;
-        background: #222;
-        border: 3px solid #555;
-        color: white;
-        font-size: 28px;
-        border-radius: 14px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        user-select: none;
-        touch-action: manipulation;
-    }
+.btn {
+    width: 55px;
+    height: 55px;
+    background: #222;
+    border: 2px solid #555;
+    color: white;
+    font-size: 22px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-    .up    { grid-area: up; }
-    .down  { grid-area: down; }
-    .left  { grid-area: left; }
-    .right { grid-area: right; }
+.up { grid-area: up; }
+.down { grid-area: down; }
+.left { grid-area: left; }
+.right { grid-area: right; }
 </style>
 </head>
 
@@ -100,10 +93,10 @@
     <div id="start-screen">TAP TO PLAY</div>
 
     <div id="dpad">
-        <div class="btn up" id="upBtn">▲</div>
-        <div class="btn left" id="leftBtn">◀</div>
-        <div class="btn right" id="rightBtn">▶</div>
-        <div class="btn down" id="downBtn">▼</div>
+        <div class="btn up" id="up">▲</div>
+        <div class="btn left" id="left">◀</div>
+        <div class="btn right" id="right">▶</div>
+        <div class="btn down" id="down">▼</div>
     </div>
 </div>
 
@@ -123,7 +116,7 @@ sprite.src = 'assets/sprite.png';
 const SPRITE_SIZE = 12.5;
 const SPRITE_OFFSET = (TILE - SPRITE_SIZE) / 2;
 
-const maze = [ /* your maze array unchanged */ 
+const maze = [
 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 [1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1],
 [1,0,1,1,0,0,1,0,0,1,0,1,1,1,0,1,1,0,1],
@@ -148,22 +141,24 @@ const maze = [ /* your maze array unchanged */
 
 let player = { x: TILE, y: TILE, dx: 0, dy: 0, score: 0 };
 let gameRunning = false;
-let bgMusic = document.getElementById('bgMusic');
+const bgMusic = document.getElementById('bgMusic');
 
 function canMove(nx, ny) {
-    if (nx < 0 || nx + TILE > canvas.width || ny < 0 || ny + TILE > canvas.height) {
-        return false;
-    }
-    const col = Math.floor((nx + TILE / 2) / TILE);
-    const row = Math.floor((ny + TILE / 2) / TILE);
+    if (nx < 0 || nx + TILE > canvas.width || ny < 0 || ny + TILE > canvas.height) return false;
+
+    let col = Math.floor((nx + TILE/2) / TILE);
+    let row = Math.floor((ny + TILE/2) / TILE);
+
     if (maze[row] && maze[row][col] === 1) return false;
     return true;
 }
 
 function update() {
     if (!gameRunning) return;
-    const nx = player.x + player.dx;
-    const ny = player.y + player.dy;
+
+    let nx = player.x + player.dx;
+    let ny = player.y + player.dy;
+
     if (canMove(nx, ny)) {
         player.x = nx;
         player.y = ny;
@@ -178,7 +173,7 @@ function draw() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw maze
+    // Draw walls
     for (let r = 0; r < maze.length; r++) {
         for (let c = 0; c < maze[r].length; c++) {
             if (maze[r][c] === 1) {
@@ -188,7 +183,19 @@ function draw() {
         }
     }
 
-    // Draw player
+    // Draw pellets (the 2's)
+    ctx.fillStyle = '#ffff00';
+    for (let r = 0; r < maze.length; r++) {
+        for (let c = 0; c < maze[r].length; c++) {
+            if (maze[r][c] === 2) {
+                ctx.beginPath();
+                ctx.arc(c * TILE + TILE/2, r * TILE + TILE/2, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    // Draw sprite
     ctx.drawImage(sprite, player.x + SPRITE_OFFSET, player.y + SPRITE_OFFSET, SPRITE_SIZE, SPRITE_SIZE);
 
     requestAnimationFrame(() => {
@@ -197,59 +204,52 @@ function draw() {
     });
 }
 
-// === Audio handling ===
-function startMusic() {
+function handleStart() {
+    const startScreen = document.getElementById('start-screen');
+    
+    // Music unlock on user gesture
+    bgMusic.muted = false;
     bgMusic.volume = 0.8;
-    bgMusic.play().catch(err => {
-        console.log("Audio play failed:", err);
-        // Optional: retry once after a short delay
-        setTimeout(() => bgMusic.play().catch(e => console.log("Retry failed", e)), 300);
+    
+    bgMusic.play().then(() => {
+        console.log("Music started successfully");
+    }).catch(e => {
+        console.log("Music play error:", e);
+        // Retry once
+        setTimeout(() => bgMusic.play().catch(err => console.log("Retry failed:", err)), 200);
     });
-}
 
-// === Game start ===
-function handleStart(e) {
-    if (gameRunning) return;
-
-    document.getElementById('start-screen').style.display = 'none';
+    startScreen.style.display = 'none';
     gameRunning = true;
-
-    startMusic();           // This runs inside the user gesture → should work reliably
     draw();
 }
 
-// Touch / Click controls
-const directions = {
-    upBtn:    { dx: 0, dy: -TILE },
-    downBtn:  { dx: 0, dy: TILE },
-    leftBtn:  { dx: -TILE, dy: 0 },
-    rightBtn: { dx: TILE, dy: 0 }
+// Button controls (your original style)
+const dirs = {
+    up:    {dx: 0, dy: -TILE},
+    down:  {dx: 0, dy: TILE},
+    left:  {dx: -TILE, dy: 0},
+    right: {dx: TILE, dy: 0}
 };
 
-Object.keys(directions).forEach(id => {
-    const btn = document.getElementById(id);
-    btn.addEventListener('pointerdown', () => {
-        player.dx = directions[id].dx;
-        player.dy = directions[id].dy;
+['up','down','left','right'].forEach(dir => {
+    document.getElementById(dir).addEventListener('pointerdown', () => {
+        player.dx = dirs[dir].dx;
+        player.dy = dirs[dir].dy;
     });
 });
 
-// Keyboard support (for desktop testing)
+// Keyboard for desktop testing
 window.addEventListener('keydown', e => {
-    switch (e.key) {
-        case 'ArrowUp':    player.dx = 0; player.dy = -TILE; break;
-        case 'ArrowDown':  player.dx = 0; player.dy = TILE; break;
-        case 'ArrowLeft':  player.dx = -TILE; player.dy = 0; break;
-        case 'ArrowRight': player.dx = TILE; player.dy = 0; break;
+    switch(e.key) {
+        case 'ArrowUp':    player.dx=0; player.dy=-TILE; break;
+        case 'ArrowDown':  player.dx=0; player.dy=TILE; break;
+        case 'ArrowLeft':  player.dx=-TILE; player.dy=0; break;
+        case 'ArrowRight': player.dx=TILE; player.dy=0; break;
     }
 });
 
 document.getElementById('start-screen').addEventListener('pointerdown', handleStart);
-
-// Optional: prevent accidental scrolling on mobile
-document.addEventListener('touchmove', e => {
-    if (e.touches.length > 1) e.preventDefault();
-}, { passive: false });
 </script>
 
 </body>
