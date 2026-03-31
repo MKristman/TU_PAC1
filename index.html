@@ -37,6 +37,7 @@ h1 {
 canvas {
     border: 4px solid #2222ff;
     background-color: #000;
+    display: block;
 }
 
 #start-screen {
@@ -144,7 +145,7 @@ let musicStarted = false;
 
 function canMove(nx, ny) {
 
-    // OUTSIDE WALL BOUNCE ONLY
+    // bounce only on OUTER vertical edges
     if (nx < 0 || nx + TILE > canvas.width) {
         player.dx = -player.dx;
         return false;
@@ -197,6 +198,7 @@ function draw() {
     ctx.drawImage(sprite, player.x + SPRITE_OFFSET, player.y + SPRITE_OFFSET, SPRITE_SIZE, SPRITE_SIZE);
 
     ctx.fillStyle = "white";
+    ctx.font = "14px Arial";
     ctx.fillText("SCORE: " + player.score, 10, canvas.height - 10);
 
     update();
@@ -208,7 +210,7 @@ function handleStart() {
 
     if (!musicStarted) {
         music.currentTime = 0;
-        music.play().catch(e => console.log(e));
+        music.play().catch(e => console.log("Audio error:", e));
         musicStarted = true;
     }
 
@@ -217,7 +219,8 @@ function handleStart() {
     draw();
 }
 
-document.getElementById('start-screen').addEventListener('pointerdown', handleStart);
+document.getElementById('start-screen')
+    .addEventListener('pointerdown', handleStart);
 
 const dirs = {
     up: [0,-1],
@@ -228,8 +231,8 @@ const dirs = {
 
 Object.keys(dirs).forEach(id => {
     document.getElementById(id).addEventListener('pointerdown', () => {
-        player.dx = dirs[id][0]*2.5;
-        player.dy = dirs[id][1]*2.5;
+        player.dx = dirs[id][0] * 2.5;
+        player.dy = dirs[id][1] * 2.5;
     });
 });
 
